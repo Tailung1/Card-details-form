@@ -108,14 +108,20 @@ function App() {
     console.log(data);
   };
 
+  const UserName = watch("UserName");
+  const CardNumber = watch("CardNumber");
+  const MM = watch("MM");
+  const YY = watch("YY");
+  const Cvc = watch("Cvc");
+
   return (
     <>
       <div>
-        <h2>{watch("UserName") || "JANE APPLESEED"}</h2>
-        <h2>{watch("CardNumber") || "0000 0000 0000 0000"}</h2>
-        <h3>{watch("MM") || "00"}</h3>
-        <h3>{watch("YY") || "00"}</h3>
-        <h3>{watch("Cvc") || "000"}</h3>
+        <h2>{UserName || "JANE APPLESEED"}</h2>
+        <h2>{CardNumber || "0000 0000 0000 0000"}</h2>
+        <h3>{MM || "00"}</h3>
+        <h3>{YY || "00"}</h3>
+        <h3>{Cvc || "000"}</h3>
       </div>
 
       <form onSubmit={handleSubmit(onSubmit)}>
@@ -143,9 +149,20 @@ function App() {
           type='text'
           id='MM'
           placeholder='MM'
-          {...register("MM")}
+          maxLength={2} // Limit input to 2 characters
+          {...register("MM", {
+            onBlur: (e) => {
+              const paddedValue = e.target.value.padStart(2, "0");
+              e.target.value = paddedValue;
+              setValue("MM", paddedValue); // Update form state with padded value
+            },
+            validate: (value) => {
+              return /^[0-9]{2}$/.test(value) && +value <= 12;
+            },
+          })}
         />
         {errors.MM && <p>{errors.MM.message}</p>}
+
 
         <label htmlFor='YY'>YY</label>
         <input
