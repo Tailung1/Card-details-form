@@ -62,7 +62,19 @@ const schema = yup.object({
       const cardType = getCardType(value);
       return cardType !== "Unknown";
     }),
-  MM: yup.string().required("Input can't be empty"),
+  MM: yup
+    .string()
+    .required("Input can't be empty")
+    .matches(/^(0[1-9]|1[0-2])$/, "Month must be between 01 and 12")
+    .test(
+      "valid-month",
+      "Month must be between 01 and 12",
+      (value) => {
+        if (!value) return false; // Ensure value exists
+        return Number(value) >= 1 && Number(value) <= 12;
+      }
+    ),
+
   YY: yup.string().required("Input can't be empty"),
   Cvc: yup.string().required("Input can't be empty"),
 });
@@ -152,17 +164,17 @@ function App() {
           maxLength={2} // Limit input to 2 characters
           {...register("MM", {
             onBlur: (e) => {
-              const paddedValue = e.target.value.padStart(2, "0");
-              e.target.value = paddedValue;
-              setValue("MM", paddedValue); // Update form state with padded value
-            },
-            validate: (value) => {
-              return /^[0-9]{2}$/.test(value) && +value <= 12;
+              let value = e.target.value.replace(/\D/g, ""); // Remove non-numeric chars
+              if (value.length === 1) value = `0${value}`; // Convert 1 to 01, 2 to 02, etc.
+              if (parseInt(value, 10) > 12) value = "12"; // Prevent values above 12
+              e.target.value = value;
+              setValue("MM", value);
+              trigger("MM"); // Revalidate after formatting
             },
           })}
         />
-        {errors.MM && <p>{errors.MM.message}</p>}
 
+        {errors.MM && <p>{errors.MM.message}</p>}
 
         <label htmlFor='YY'>YY</label>
         <input
